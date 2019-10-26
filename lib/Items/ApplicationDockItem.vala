@@ -42,6 +42,11 @@ namespace Plank
 		 * Signal fired when the item's 'keep in dock' menu item is pressed.
 		 */
 		public signal void pin_launcher ();
+
+		/**
+		 * Signal fired when the item's 'verify before opening' menu item is pressed.
+		 */
+		public signal void verify_required ();
 		
 		/**
 		 * Signal fired when the application associated with this item closes.
@@ -104,6 +109,8 @@ namespace Plank
 		Gee.ArrayList<string> supported_mime_types;
 		Gee.ArrayList<string> actions;
 		Gee.HashMap<string, string> actions_map;
+
+		private bool verification_required = false;
 		
 		string? unity_application_uri = null;
 		string? unity_dbusname = null;
@@ -314,6 +321,25 @@ namespace Plank
 			System.get_default ().launch (File.new_for_uri (Prefs.Launcher));
 		}
 		
+		void launchVerify (){
+			if(this.verification_required){
+				var dialog = new Gtk.MessageDialog(null,Gtk.DialogFlags.MODAL,Gtk.MessageType.INFO, Gtk.ButtonsType.YES_NO, "Are you sure you would like to launch this application?");
+				dialog.set_default_size(400, 150);
+				dialog.set_title("Verify Application");
+
+				int response = dialog.run();
+				switch(response){
+					case Gtk.ResponseType.YES:
+						launch ();
+						break;
+					case Gtk.ResponseType.NO:
+						break;
+					case Gtk.ResponseType.DELETE_EVENT:
+						break;
+				}
+				dialog.destroy();
+			}else launch ();
+		}
 		/**
 		 * {@inheritDoc}
 		 */
@@ -323,7 +349,7 @@ namespace Plank
 				if (button == PopupButton.MIDDLE
 					|| (button == PopupButton.LEFT && (App == null || App.get_windows ().length () == 0
 					|| (mod & Gdk.ModifierType.CONTROL_MASK) == Gdk.ModifierType.CONTROL_MASK))) {
-					launch ();
+					launchVerify ();
 					return AnimationType.BOUNCE;
 				}
 			
@@ -389,6 +415,20 @@ namespace Plank
 			
 			return window_name;
 		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		public void setVerification(bool value){
+			this.verification_required = value;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		 public bool verificationRequired(){
+			 return this.verification_required;
+		 }
 		
 		/**
 		 * {@inheritDoc}
@@ -413,6 +453,13 @@ namespace Plank
 				item.active = !(this is TransientDockItem);
 				item.activate.connect (() => pin_launcher ());
 				items.add (item);
+
+				if (!(this is TransientDockItem)) {
+					var verifyitem = new Gtk.CheckMenuItem.with_mnemonic (_("_Verify before opening"));
+					verifyitem.active = this.verification_required;
+					verifyitem.activate.connect (() => verify_required ());
+					items.add (verifyitem);
+				}
 			}
 			
 			var event_time = Gtk.get_current_event_time ();

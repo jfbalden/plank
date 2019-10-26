@@ -198,6 +198,10 @@ msgstr ""
 msgid "_Keep in Dock"
 msgstr "_Keep in Dock"
 
+#: .../
+msgid "_Verify before opening"
+msgstr "_Verify before opening"
+
 #: ../lib/Items/ApplicationDockItem.vala:420
 msgid "_Close All"
 msgstr "_Close All"
