@@ -26,6 +26,9 @@ namespace Plank
 	{
 		[Description(nick = "launcher", blurb = "The uri for this item.")]
 		public string Launcher { get; set; }
+
+		[Description(nick = "verification", blurb = "Whether to verify before launch.")]
+		public bool Verification { get; set; default=false; }
 		
 		/**
 		 * {@inheritDoc}

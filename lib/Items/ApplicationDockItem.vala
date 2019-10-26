@@ -109,8 +109,6 @@ namespace Plank
 		Gee.ArrayList<string> supported_mime_types;
 		Gee.ArrayList<string> actions;
 		Gee.HashMap<string, string> actions_map;
-
-		private bool verification_required = false;
 		
 		string? unity_application_uri = null;
 		string? unity_dbusname = null;
@@ -322,24 +320,23 @@ namespace Plank
 		}
 		
 		void launchVerify (){
-			if(this.verification_required){
-				var dialog = new Gtk.MessageDialog(null,Gtk.DialogFlags.MODAL,Gtk.MessageType.INFO, Gtk.ButtonsType.YES_NO, "Are you sure you would like to launch this application?");
-				dialog.set_default_size(400, 150);
-				dialog.set_title("Verify Application");
+			var dialog = new Gtk.MessageDialog(null,Gtk.DialogFlags.MODAL,Gtk.MessageType.INFO, Gtk.ButtonsType.YES_NO, "Are you sure you would like to launch this application?");
+			dialog.set_default_size(400, 150);
+			dialog.set_title("Verify Application");
 
-				int response = dialog.run();
-				switch(response){
-					case Gtk.ResponseType.YES:
-						launch ();
-						break;
-					case Gtk.ResponseType.NO:
-						break;
-					case Gtk.ResponseType.DELETE_EVENT:
-						break;
-				}
-				dialog.destroy();
-			}else launch ();
+			int response = dialog.run();
+			switch(response){
+				case Gtk.ResponseType.YES:
+					launch ();
+					break;
+				case Gtk.ResponseType.NO:
+					break;
+				case Gtk.ResponseType.DELETE_EVENT:
+					break;
+			}
+			dialog.destroy();
 		}
+		
 		/**
 		 * {@inheritDoc}
 		 */
@@ -349,7 +346,8 @@ namespace Plank
 				if (button == PopupButton.MIDDLE
 					|| (button == PopupButton.LEFT && (App == null || App.get_windows ().length () == 0
 					|| (mod & Gdk.ModifierType.CONTROL_MASK) == Gdk.ModifierType.CONTROL_MASK))) {
-					launchVerify ();
+					if (this.verificationRequired()) launchVerify ();
+					else launch();
 					return AnimationType.BOUNCE;
 				}
 			
@@ -419,15 +417,12 @@ namespace Plank
 		/**
 		 * {@inheritDoc}
 		 */
-		public void setVerification(bool value){
-			this.verification_required = value;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
 		 public bool verificationRequired(){
-			 return this.verification_required;
+			Value val = Value(typeof(DockItemPreferences));
+			this.get_property("Prefs", ref val);
+			DockItemPreferences prefs = (DockItemPreferences) val;
+
+			return prefs.Verification;
 		 }
 		
 		/**
@@ -456,7 +451,10 @@ namespace Plank
 
 				if (!(this is TransientDockItem)) {
 					var verifyitem = new Gtk.CheckMenuItem.with_mnemonic (_("_Verify before opening"));
-					verifyitem.active = this.verification_required;
+					Value val = Value(typeof(DockItemPreferences));
+					this.get_property("Prefs", ref val);
+					DockItemPreferences prefs = (DockItemPreferences) val;
+					verifyitem.active = prefs.Verification;
 					verifyitem.activate.connect (() => verify_required ());
 					items.add (verifyitem);
 				}

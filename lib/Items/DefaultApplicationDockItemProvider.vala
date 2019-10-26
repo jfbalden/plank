@@ -274,7 +274,10 @@ namespace Plank
 
 			Logger.verbose ("DefaultDockItemProvider.verify_item ('%s[%s]')", item.Text, item.DockItemFilename);
 
-			item.setVerification (!item.verificationRequired());
+			Value val = Value(typeof(DockItemPreferences));
+			item.get_property("Prefs", ref val);
+			DockItemPreferences prefs = (DockItemPreferences) val;
+			prefs.Verification = !prefs.Verification;
 		}
 
 		public void pin_item (DockItem item)
