@@ -232,6 +232,7 @@ namespace Plank
 			if (appitem != null) {
 				appitem.app_closed.connect (app_closed);
 				appitem.pin_launcher.connect (pin_item);
+				appitem.verify_required.connect (verify_item);
 			}
 		}
 		
@@ -243,6 +244,7 @@ namespace Plank
 			if (appitem != null) {
 				appitem.app_closed.disconnect (app_closed);
 				appitem.pin_launcher.disconnect (pin_item);
+				appitem.verify_required.disconnect (verify_item);
 			}
 		}
 		
@@ -263,6 +265,18 @@ namespace Plank
 			replace (new_item, item);
 		}
 		
+		public void verify_item (ApplicationDockItem item)
+		{
+			if (!internal_elements.contains (item)) {
+				critical ("Item '%s' does not exist in this DockItemProvider.", item.Text);
+				return;
+			}
+
+			Logger.verbose ("DefaultDockItemProvider.verify_item ('%s[%s]')", item.Text, item.DockItemFilename);
+
+			item.setVerification (!item.verificationRequired());
+		}
+
 		public void pin_item (DockItem item)
 		{
 			if (!internal_elements.contains (item)) {
